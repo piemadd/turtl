@@ -76,8 +76,8 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	splitAtPeriods := strings.Split(url, ".")
 	splitAtSlash := strings.Split(url, "/")
 	wildcard := splitAtPeriods[0]
-	domain := splitAtPeriods[1] + "." + splitAtPeriods[2]
 	filename := splitAtSlash[1]
+	domain := splitAtPeriods[1] + "." + strings.TrimSuffix(splitAtPeriods[2], "/"+strings.Split(filename, ".")[0])
 
 	rows, err := DB.Query("select * from objects where wildcard=$1 and bucket=$2 and filename=$3", wildcard, domain, filename)
 	if utils.HandleError(err, "query DB for GetFileFromURL") {
