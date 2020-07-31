@@ -28,8 +28,8 @@ var maxFileSize int64 = 100000000
 var maxFilesPerUpload = 5
 
 type finalResponse struct {
-	Success		bool							`json:"success"`
-	Files		[]structs.FileUploadResponse	`json:"files"`
+	Success bool                         `json:"success"`
+	Files   []structs.FileUploadResponse `json:"files"`
 }
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +96,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := r.MultipartForm.Value["domain"][0]
-	if !utils.BucketExists(storage.Buckets, domain) {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(`That domain isn't supported`))
-		return
-	}
 
 	var rootDomain string
 	var wildcard string
@@ -112,6 +107,12 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	} else {
 		rootDomain = domain
 		domain = "i." + domain
+	}
+
+	if !utils.BucketExists(storage.Buckets, rootDomain) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`That domain isn't supported`))
+		return
 	}
 
 	if len(wildcard) > 30 {
@@ -136,11 +137,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	for _, f := range files {
 		if f.Size > maxFileSize {
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusRequestEntityTooLarge,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "File size limit is 100mb",
+				Success: false,
+				Status:  http.StatusRequestEntityTooLarge,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "File size limit is 100mb",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusRequestEntityTooLarge)
@@ -156,11 +157,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			log.Println("Failed to generate file key within 5 attempts.")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "Failed to generate file key within 5 attempts.",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "Failed to generate file key within 5 attempts.",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -176,11 +177,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 
 		if len(generatedName) > 30 {
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusRequestEntityTooLarge,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "File extension too long",
+				Success: false,
+				Status:  http.StatusRequestEntityTooLarge,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "File extension too long",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -192,11 +193,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		open, err := f.Open()
 		if utils.HandleError(err, "opening file") {
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -213,11 +214,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -233,11 +234,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -257,11 +258,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -273,11 +274,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusNotAcceptable,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "File is blacklisted",
+				Success: false,
+				Status:  http.StatusNotAcceptable,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "File is blacklisted",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -291,11 +292,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -307,11 +308,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusAlreadyReported,
-				Name:     f.Filename,
-				URL:      existingFileURL,
-				Info: 	  "File already exists",
+				Success: false,
+				Status:  http.StatusAlreadyReported,
+				Name:    f.Filename,
+				URL:     existingFileURL,
+				Info:    "File already exists",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusAlreadyReported)
@@ -327,11 +328,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -341,22 +342,22 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		_, err = storage.S3Service.PutObject(&s3.PutObjectInput{
-			Body:                 bytes.NewReader(buf),
-			Bucket:               aws.String(rootDomain),
-			Key:                  aws.String(generatedName),
-			ACL: 			  	  aws.String("public-read"),
-			ContentType: 		  aws.String(contentType),
-			ContentDisposition:   aws.String("inline"),
+			Body:               bytes.NewReader(buf),
+			Bucket:             aws.String(rootDomain),
+			Key:                aws.String(generatedName),
+			ACL:                aws.String("public-read"),
+			ContentType:        aws.String(contentType),
+			ContentDisposition: aws.String("inline"),
 		})
 		if utils.HandleError(err, "uploading") {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "Failed to upload file",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "Failed to upload file",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -371,11 +372,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		_, err = db.DB.Exec("insert into objects values ($1, $2, $3, $4, $5, $6, $7)", rootDomain, wildcard, generatedName, currentUser.DiscordID, time.Now().Unix(), hex.EncodeToString(md5Sum), hex.EncodeToString(sha256Sum))
 		if utils.HandleError(err, "insert object into psql") {
 			responses = append(responses, structs.FileUploadResponse{
-				Success:  false,
-				Status:   http.StatusInternalServerError,
-				Name:     f.Filename,
-				URL:      "",
-				Info: 	  "500 - Internal Server Error",
+				Success: false,
+				Status:  http.StatusInternalServerError,
+				Name:    f.Filename,
+				URL:     "",
+				Info:    "500 - Internal Server Error",
 			})
 			if len(files) == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -384,12 +385,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-
 		responses = append(responses, structs.FileUploadResponse{
 			Success: true,
 			Status:  http.StatusOK,
 			Name:    f.Filename,
-			URL:     "http://"+domain+"/"+generatedName,
+			URL:     "http://" + domain + "/" + generatedName,
 			Info:    "",
 		})
 	}
