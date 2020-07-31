@@ -19,7 +19,7 @@ func main() {
 
 	go discord.CreateBot()
 
-	err := http.ListenAndServe(":1337", router)
+	err := http.ListenAndServe(":3000", router)
 	if err != nil {
 		log.Fatal("Failed to start API", err.Error())
 	}
