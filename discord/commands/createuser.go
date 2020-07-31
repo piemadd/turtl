@@ -50,6 +50,9 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 		_, _ = s.ChannelMessageSend(dm.ID, member.Mention()+"'s DMs are disabled. Their API key is: `"+generated+"`.")
 	}
 
+	err = s.GuildMemberRoleAdd(config.DISCORD_GUILD, member.User.ID, config.BIG_BOYE)
+	_ = utils.HandleError(err, "adding big boye role")
+
 	_, _ = s.ChannelMessageSend(m.ChannelID, "User has been created")
 }
 

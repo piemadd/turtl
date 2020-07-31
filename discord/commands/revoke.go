@@ -3,7 +3,9 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 	"strings"
+	"turtl/config"
 	"turtl/db"
+	"turtl/utils"
 )
 
 func revokeCommand(s *discordgo.Session, m *discordgo.Message) {
@@ -27,6 +29,12 @@ func revokeCommand(s *discordgo.Session, m *discordgo.Message) {
 	if !exists {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "That user doesn't exist")
 		return
+	}
+
+	member, err := s.GuildMember(config.DISCORD_GUILD, userID)
+	if member != nil && err == nil && member.User.ID != "" {
+		err = s.GuildMemberRoleRemove(config.DISCORD_GUILD, member.User.ID, config.BIG_BOYE)
+		_ = utils.HandleError(err, "removing big boye role")
 	}
 
 	ok = db.RevokeKey(userID)
