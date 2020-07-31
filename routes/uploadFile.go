@@ -97,6 +97,10 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := r.MultipartForm.Value["domain"][0]
+
+	//fmt.Println(rootDomain)
+	fmt.Println(domain)
+
 	if !utils.BucketExists(storage.Buckets, domain) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(`That domain isn't supported`))
@@ -114,9 +118,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		rootDomain = domain
 		domain = "i." + domain
 	}
-
-	fmt.Println(rootDomain)
-	fmt.Println(domain)
 
 	if len(wildcard) > 30 {
 		w.WriteHeader(http.StatusRequestURITooLong)
