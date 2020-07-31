@@ -13,8 +13,7 @@ var Buckets []*s3.Bucket
 
 func init() {
 	Session = session.Must(session.NewSession(&aws.Config{
-		Endpoint: aws.String("https://us-east-1.linodeobjects.com"),
-		Region:   aws.String("us-east-1"),
+		Region: aws.String("us-east-1"),
 	}))
 	S3Service = s3.New(Session)
 
