@@ -137,6 +137,26 @@ func GenerateUUID(s *discordgo.Session, m *discordgo.Message) (string, bool) {
 	return "", false
 }
 
+func RevokeKey(key string) bool {
+	_, err := DB.Exec("delete from users where discordid=$1 or apikey=$1", key)
+	if utils.HandleError(err, "delete user from db") {
+		return false
+	}
+	return true
+}
+
+func DoesDiscordOrKeyExist(key string) (bool, bool) {
+	rows, err := DB.Query("select * from users where discordid=$1 or apikey=$1", key)
+	if utils.HandleError(err, "delete user from db") {
+		return false, false
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true, true
+	}
+	return false, true
+}
+
 func SetMemberAPIKey(member *discordgo.Member, newAPIKey string) bool {
 	_, err := DB.Exec("update users set apikey=$1 where discordid=$2", newAPIKey, member.User.ID)
 	if utils.HandleError(err, "update api key") {
