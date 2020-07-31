@@ -55,7 +55,7 @@ func DoesFileSumExist(md5 string, sha256 string, domain string) (string, bool) {
 	if objects.Next() {
 		var existingObject structs.Object
 		err = objects.Scan(&existingObject.Bucket, &existingObject.Wildcard, &existingObject.FileName, &existingObject.Uploader, &existingObject.CreatedAt, &existingObject.MD5, &existingObject.SHA256)
-		return "http://" + existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
+		return "https://" + existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
 	}
 	return "", true
 }

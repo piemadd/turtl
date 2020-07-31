@@ -16,7 +16,7 @@ func HandleError(err error, loc string) bool {
 		params := discordgo.WebhookParams{
 			Content:   "<@492459066900348958>\n**ERROR**\n\nLocation: `" + loc + "`\nError:\n```" + err.Error() + "```",
 			Username:  "turtl",
-			AvatarURL: "http://i.turtl.cloud/turtl.png",
+			AvatarURL: "https://i.turtl.cloud/turtl.png",
 		}
 		reqBody, err := json.Marshal(params)
 		if err != nil {

@@ -388,7 +388,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			Success: true,
 			Status:  http.StatusOK,
 			Name:    f.Filename,
-			URL:     "http://" + domain + "/" + generatedName,
+			URL:     "https://" + domain + "/" + generatedName,
 			Info:    "",
 		})
 	}
