@@ -10,7 +10,9 @@ import (
 
 func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 	allowed, ok := db.CheckAdmin(s, m)
-	if !allowed || !ok { return }
+	if !allowed || !ok {
+		return
+	}
 
 	args := UseArgs(m)
 	if len(args) < 1 {
@@ -22,6 +24,16 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 	member, err := s.GuildMember(config.DISCORD_GUILD, memberID)
 	if member == nil || member.User == nil || member.User.ID == "" || err != nil {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "They're not in this server")
+		return
+	}
+
+	currentAccount, ok := db.GetDiscordMemberAccount(member)
+	if !ok {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
+		return
+	}
+	if currentAccount.APIKey != "" && currentAccount.DiscordID != "" {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "This person already has an account.")
 		return
 	}
 
@@ -47,11 +59,11 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 
 func init() {
 	RegisterCommand(&Command{
-		Exec:       createuserCommand,
-		Trigger:    "createuser",
-		Aliases:    nil,
-		Usage:      "createuser <user>",
-		Desc:       "Grant an API key to someone",
-		Disabled:   false,
+		Exec:     createuserCommand,
+		Trigger:  "createuser",
+		Aliases:  nil,
+		Usage:    "createuser <user>",
+		Desc:     "Grant an API key to someone",
+		Disabled: false,
 	})
 }

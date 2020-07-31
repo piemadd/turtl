@@ -100,7 +100,7 @@ func CheckAdmin(s *discordgo.Session, m *discordgo.Message) (bool, bool) {
 		return false, false
 	}
 	defer users.Close()
-	if users.Next() {
+	if !users.Next() {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "You can't use this command, nerd")
 		return false, true
 	}
