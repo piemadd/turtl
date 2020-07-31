@@ -99,7 +99,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	domain := r.MultipartForm.Value["domain"][0]
 
 	//fmt.Println(rootDomain)
-	fmt.Println(domain)
+	fmt.Println(storage.Buckets[0].Name)
 
 	if !utils.BucketExists(storage.Buckets, domain) {
 		w.WriteHeader(http.StatusBadRequest)
