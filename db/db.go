@@ -55,7 +55,7 @@ func DoesFileSumExist(md5 string, sha256 string, domain string) (string, bool) {
 	if objects.Next() {
 		var existingObject structs.Object
 		err = objects.Scan(&existingObject.Bucket, &existingObject.Wildcard, &existingObject.FileName, &existingObject.Uploader, &existingObject.CreatedAt, &existingObject.MD5, &existingObject.SHA256)
-		return "http://"+existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
+		return "http://" + existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
 	}
 	return "", true
 }
@@ -81,7 +81,7 @@ func GenerateNewFileName(extension string, domain string) (string, bool) {
 			b[i] = characters[rand.Intn(len(characters))]
 		}
 
-		formatted := string(b)+"."+extension
+		formatted := string(b) + "." + extension
 		exists, ok := DoesFileNameExist(formatted, domain)
 		if !ok {
 			return "", false
@@ -109,7 +109,9 @@ func CheckAdmin(s *discordgo.Session, m *discordgo.Message) (bool, bool) {
 
 func CreateUser(s *discordgo.Session, m *discordgo.Message, member *discordgo.Member) (string, bool) {
 	generated, ok := GenerateUUID(s, m)
-	if !ok || generated == "" { return "", false }
+	if !ok || generated == "" {
+		return "", false
+	}
 
 	_, err := DB.Exec("insert into users values ($1, $2, false)", member.User.ID, generated)
 	if utils.HandleError(err, "query users to check for existing uuid") {
@@ -125,8 +127,12 @@ func GenerateUUID(s *discordgo.Session, m *discordgo.Message) (string, bool) {
 	for i := 0; i < 5; i++ {
 		generated = uuid.New()
 		exists, ok := DoesUserExist(s, m, generated.String())
-		if !ok { return "", false }
-		if !exists { return generated.String(), true }
+		if !ok {
+			return "", false
+		}
+		if !exists {
+			return generated.String(), true
+		}
 	}
 	return "", false
 }
@@ -143,4 +149,21 @@ func DoesUserExist(s *discordgo.Session, m *discordgo.Message, apikey string) (b
 	}
 
 	return false, true
+}
+
+func GetDiscordMemberAccount(member *discordgo.Member) (structs.User, bool) {
+	users, err := DB.Query("select * from users where discordid=$1", member.User.ID)
+	if utils.HandleError(err, "checking for discord account") {
+		return structs.User{}, false
+	}
+	defer users.Close()
+	if users.Next() {
+		var retUser structs.User
+		err = users.Scan(&retUser.DiscordID, &retUser.APIKey, &retUser.Admin)
+		if utils.HandleError(err, "get discord member account scan") {
+			return structs.User{}, false
+		}
+		return retUser, true
+	}
+	return structs.User{}, true
 }
