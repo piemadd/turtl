@@ -83,7 +83,7 @@ func init() {
 		Trigger:  "sxcu",
 		Aliases:  []string{"config"},
 		Usage:    "sxcu [domain]",
-		Desc:     "",
+		Desc:     "Generate a ShareX config file",
 		Disabled: false,
 	})
 }
