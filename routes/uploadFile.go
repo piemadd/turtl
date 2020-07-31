@@ -101,12 +101,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(rootDomain)
 	fmt.Println(storage.Buckets[0].String())
 
-	if !utils.BucketExists(storage.Buckets, domain) {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(`That domain isn't supported`))
-		return
-	}
-
 	var rootDomain string
 	var wildcard string
 
@@ -117,6 +111,13 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	} else {
 		rootDomain = domain
 		domain = "i." + domain
+	}
+
+	fmt.Println(rootDomain)
+	if !utils.ArrayContains(config.DOMAINS, rootDomain) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`That domain isn't supported`))
+		return
 	}
 
 	if len(wildcard) > 30 {

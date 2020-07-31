@@ -3,8 +3,6 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
 	"net/http"
 	"strings"
@@ -29,33 +27,6 @@ func HandleError(err error, loc string) bool {
 		}
 		return true
 	}
-	return false
-}
-
-func RemoveIndex(index int, arr []string) []string {
-	copy(arr[index:], arr[index+1:])
-	arr[len(arr)-1] = ""
-	arr = arr[:len(arr)-1]
-
-	return arr
-}
-
-func BucketExists(arr []*s3.Bucket, query string) bool {
-	var queryString string
-	if strings.Count(query, ".") > 1 {
-		eeee := strings.Split(query, ".")
-		queryString = strings.Join(RemoveIndex(0, eeee), ".")
-	} else {
-		queryString = query
-	}
-	for _, e := range arr {
-		if strings.ToLower(aws.StringValue(e.Name)) == strings.ToLower(queryString) {
-			return true
-		} else {
-			continue
-		}
-	}
-
 	return false
 }
 
