@@ -137,6 +137,14 @@ func GenerateUUID(s *discordgo.Session, m *discordgo.Message) (string, bool) {
 	return "", false
 }
 
+func SetMemberAPIKey(member *discordgo.Member, newAPIKey string) bool {
+	_, err := DB.Exec("update users set apikey=$1 where discordid=$2", newAPIKey, member.User.ID)
+	if utils.HandleError(err, "update api key") {
+		return false
+	}
+	return true
+}
+
 func DoesUserExist(s *discordgo.Session, m *discordgo.Message, apikey string) (bool, bool) {
 	existing, err := DB.Query("select * from users where apikey=$1", apikey)
 	if utils.HandleError(err, "query users to check for existing uuid") {
