@@ -109,7 +109,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		domain = "i." + domain
 	}
 
-	if !utils.BucketExists(storage.Buckets, rootDomain) {
+	if !utils.ArrayContains(config.DOMAINS, rootDomain) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(`That domain isn't supported`))
 		return
