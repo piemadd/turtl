@@ -346,7 +346,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			Key:                aws.String(generatedName),
 			ACL:                aws.String("public-read"),
 			ContentType:        aws.String(contentType),
-			ContentDisposition: aws.String("inline"),
+			ContentDisposition: aws.String("inline; filename=" + generatedName),
 		})
 		if utils.HandleError(err, "uploading") {
 			err = os.Remove(tPath)
