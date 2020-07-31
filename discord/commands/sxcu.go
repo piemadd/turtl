@@ -43,6 +43,10 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
+	if strings.Count(args[0], ".") < 2 {
+		args[0] = "i." + args[0]
+	}
+
 	dm, err := s.UserChannelCreate(m.Author.ID)
 	if dm == nil || err != nil {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Please make sure your DMs are open and try running this command again.")
