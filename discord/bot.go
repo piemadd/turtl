@@ -6,6 +6,7 @@ import (
 	"os"
 	"turtl/config"
 	"turtl/discord/commands"
+	"turtl/discord/events"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -21,6 +22,8 @@ func CreateBot() {
 	}
 
 	Client.AddHandler(botReady)
+	Client.AddHandler(events.GuildMemberRemove)
+	Client.AddHandler(events.GuildMemberAdd)
 	Client.AddHandler(commands.HandleCommand)
 
 	err = Client.Open()
