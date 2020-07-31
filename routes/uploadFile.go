@@ -18,6 +18,7 @@ import (
 	"time"
 	"turtl/config"
 	"turtl/db"
+	"turtl/discord"
 	"turtl/storage"
 	"turtl/structs"
 	"turtl/utils"
@@ -272,6 +273,9 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		if blacklisted && ok {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
+
+			_, _ = discord.Client.ChannelMessageSend(config.DISCORD_ALERTS, "<@492459066900348958>\n**Attempted Blacklisted Upload**\n\n**Uploader:** <@"+currentUser.DiscordID+">\n**MD5:** "+md5String+"\n**SHA256:** "+sha256String)
+
 			responses = append(responses, structs.FileUploadResponse{
 				Success: false,
 				Status:  http.StatusNotAcceptable,

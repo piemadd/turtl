@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
@@ -10,7 +12,9 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
+	"turtl/storage"
 	"turtl/structs"
 	"turtl/utils"
 )
@@ -60,6 +64,110 @@ func DoesFileSumExist(md5 string, sha256 string, domain string) (string, bool) {
 	return "", true
 }
 
+func GetFileFromURL(url string) (structs.Object, bool) {
+	if url == "" {
+		return structs.Object{}, false
+	}
+	if strings.Count(url, ".") < 3 {
+		return structs.Object{}, false
+	}
+
+	url = strings.TrimPrefix(url, "https://")
+	splitAtPeriods := strings.Split(url, ".")
+	splitAtSlash := strings.Split(url, "/")
+	wildcard := splitAtPeriods[0]
+	domain := splitAtPeriods[1] + "." + splitAtPeriods[2]
+	filename := splitAtSlash[1]
+
+	rows, err := DB.Query("select * from objects where wildcard=$1 and bucket=$2 and filename=$3", wildcard, domain, filename)
+	if utils.HandleError(err, "query DB for GetFileFromURL") {
+		return structs.Object{}, false
+	}
+	defer rows.Close()
+	if rows.Next() {
+		var retVal structs.Object
+		err = rows.Scan(&retVal.Bucket, &retVal.Wildcard, &retVal.FileName, &retVal.Uploader, &retVal.CreatedAt, &retVal.MD5, &retVal.SHA256)
+		if utils.HandleError(err, "scan into retval at GetFileFromURL") {
+			return structs.Object{}, false
+		}
+		return retVal, true
+	}
+	return structs.Object{}, true
+}
+
+func GetFileFromHash(sha256 string) (structs.Object, bool) {
+	rows, err := DB.Query("select * from objects where sha256=$1", sha256)
+	if utils.HandleError(err, "query DB for GetFileFromHash") {
+		return structs.Object{}, false
+	}
+	defer rows.Close()
+	if rows.Next() {
+		var retVal structs.Object
+		err = rows.Scan(&retVal.Bucket, &retVal.Wildcard, &retVal.FileName, &retVal.Uploader, &retVal.CreatedAt, &retVal.MD5, &retVal.SHA256)
+		if utils.HandleError(err, "scan into retval at GetFileFromHash") {
+			return structs.Object{}, false
+		}
+		return retVal, true
+	}
+	return structs.Object{}, true
+}
+
+func CheckObjectsForBlacklistedFile(sha256 string) ([]structs.Object, bool) {
+	rows, err := DB.Query("select * from objects where sha256=$1", sha256)
+	if utils.HandleError(err, "check objects for blacklisted files") {
+		return []structs.Object{}, false
+	}
+	defer rows.Close()
+	var retVal []structs.Object
+	for rows.Next() {
+		var t structs.Object
+		err = rows.Scan(&t.Bucket, &t.Wildcard, &t.FileName, &t.Uploader, &t.CreatedAt, &t.MD5, &t.SHA256)
+		if utils.HandleError(err, "scan into retval at CheckObjectsForBlacklistedFile") {
+			return []structs.Object{}, false
+		}
+
+		retVal = append(retVal, t)
+	}
+	return retVal, true
+}
+
+func CheckBlacklist(sha256 string) (bool, bool) {
+	rows, err := DB.Query("select * from blacklist where hash=$1", sha256)
+	if utils.HandleError(err, "check blacklist") {
+		return false, false
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true, true
+	}
+	return false, true
+}
+
+func AddToBlacklist(sha256 string) bool {
+	_, err := DB.Exec("insert into blacklist values ($1)", sha256)
+	if utils.HandleError(err, "inserting hash into blacklist") {
+		return false
+	}
+	return true
+}
+
+func DeleteFile(file structs.Object) bool {
+	_, err := storage.S3Service.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(file.Bucket),
+		Key:    aws.String(file.FileName),
+	})
+	if utils.HandleError(err, "delete file from bucket") {
+		return false
+	}
+
+	_, err = DB.Exec("delete from objects where bucket=$1 and wildcard=$2 and filename=$3 and uploader=$4 and createdat=$5 and md5=$6 and sha256=$7", file.Bucket, file.Wildcard, file.FileName, file.Uploader, file.CreatedAt, file.MD5, file.SHA256)
+	if utils.HandleError(err, "delete file from db") {
+		return false
+	}
+
+	return true
+}
+
 func DoesFileNameExist(name string, domain string) (bool, bool) {
 	rows, err := DB.Query("select * from objects where filename=$1 and bucket=$2", name, domain)
 	if utils.HandleError(err, "query psql for file") {
@@ -93,15 +201,13 @@ func GenerateNewFileName(extension string, domain string) (string, bool) {
 	return "", false
 }
 
-func CheckAdmin(s *discordgo.Session, m *discordgo.Message) (bool, bool) {
+func CheckAdmin(m *discordgo.Message) (bool, bool) {
 	users, err := DB.Query("select * from users where discordid=$1 and admin=true", m.Author.ID)
 	if utils.HandleError(err, "query users to check admin") {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return false, false
 	}
 	defer users.Close()
 	if !users.Next() {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "You can't use this command, nerd")
 		return false, true
 	}
 	return true, true

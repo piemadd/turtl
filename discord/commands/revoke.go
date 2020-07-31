@@ -9,8 +9,9 @@ import (
 )
 
 func revokeCommand(s *discordgo.Session, m *discordgo.Message) {
-	allowed, ok := db.CheckAdmin(s, m)
+	allowed, ok := db.CheckAdmin(m)
 	if !allowed || !ok {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "You can't use this command, nerd")
 		return
 	}
 
