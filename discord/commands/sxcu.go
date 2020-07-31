@@ -1,10 +1,12 @@
 package commands
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bwmarrin/discordgo"
 	"strings"
 	"turtl/config"
 	"turtl/db"
+	"turtl/storage"
 	"turtl/utils"
 )
 
@@ -29,25 +31,14 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 
 	if len(args) < 1 {
 		domainString := "```md\n"
-		for _, d := range config.DOMAINS {
-			domainString += "+ " + d + "\n"
+		for _, b := range storage.Buckets {
+			domainString += "+ " + aws.StringValue(b.Name) + "\n"
 		}
 		domainString += "```"
 		_, _ = s.ChannelMessageSend(m.ChannelID, "**Welcome to turtl!**\n\nWe offer many different domains to choose from. Please pick one below and run `+sxcu <domain of your choice>` to generate a config.\n\nAvailable domains:\n"+domainString+"\n\n**NOTE:** All domains are wildcards. Any character or number, as well as hyphens, can be prepended to the domains. If nothing is prepended, a `i.` will be automatically added.\nExamples: `make-america.great-aga.in`, `cozy.is-stup.id`")
 	}
 
-	var rootDomain string
-	if strings.Count(args[0], ".") > 2 {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Only 2 periods (.) are allowed in a domain. If you need to separate words, please use hyphens (-).")
-		return
-	} else if strings.Count(args[0], ".") == 2 {
-		eee := strings.Split(args[0], ".")
-		rootDomain = eee[1] + "." + eee[2]
-	} else {
-		rootDomain = args[0]
-	}
-
-	if !utils.ArrayContains(config.DOMAINS, rootDomain) {
+	if !utils.BucketExists(storage.Buckets, args[0]) {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "We don't support that domain. Please type `+sxcu` with no arguments to see a list of our domains.")
 		return
 	}

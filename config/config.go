@@ -8,11 +8,3 @@ var ALERTS_WEBHOOK = "https://discordapp.com/api/webhooks/738595110781976676/khl
 
 var TEMP_PATH = "P:\\temp"
 var POLAIRR_ID = "492459066900348958"
-
-var DOMAINS = []string{
-	"turtl.online",
-	"has-a-small-pen.is",
-	"not-a-sketchy.site",
-	"is-stup.id",
-	"great-aga.in",
-}
