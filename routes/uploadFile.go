@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"io"
@@ -96,6 +97,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain := r.MultipartForm.Value["domain"][0]
+	if !utils.BucketExists(storage.Buckets, domain) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`That domain isn't supported`))
+		return
+	}
 
 	var rootDomain string
 	var wildcard string
@@ -109,11 +115,8 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		domain = "i." + domain
 	}
 
-	if !utils.ArrayContains(config.DOMAINS, rootDomain) {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(`That domain isn't supported`))
-		return
-	}
+	fmt.Println(rootDomain)
+	fmt.Println(domain)
 
 	if len(wildcard) > 30 {
 		w.WriteHeader(http.StatusRequestURITooLong)
