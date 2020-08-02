@@ -4,7 +4,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
-	"turtl/config"
 	"turtl/discord/commands"
 	"turtl/discord/events"
 
@@ -21,7 +20,6 @@ func CreateBot() {
 		return
 	}
 
-	Client.AddHandler(botReady)
 	Client.AddHandler(events.GuildMemberRemove)
 	Client.AddHandler(events.GuildMemberAdd)
 	Client.AddHandler(commands.HandleCommand)
@@ -30,8 +28,4 @@ func CreateBot() {
 	if err != nil {
 		log.Fatal("error opening connection,", err)
 	}
-}
-
-func botReady(s *discordgo.Session, e *discordgo.Ready) {
-	_, _ = Client.ChannelMessageSend(config.DISCORD_ALERTS, "Bot online")
 }
