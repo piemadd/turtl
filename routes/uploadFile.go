@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 	"turtl/config"
@@ -25,7 +24,6 @@ import (
 )
 
 var maxMemory int64 = 50000000 // 50mb
-var maxFileSize int64 = 100000000
 var maxFilesPerUpload = 5
 
 type finalResponse struct {
@@ -41,14 +39,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	length, err := strconv.ParseInt(contentLength, 10, 64)
-	if utils.HandleError(err, "parsing content length") {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(`Invalid content length`))
-		return
-	}
-
-	err = r.ParseMultipartForm(maxMemory)
+	err := r.ParseMultipartForm(maxMemory)
 	if utils.HandleError(err, "parsing form body") {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`Internal server error`))
@@ -91,12 +82,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if length > currentUser.UploadLimit {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		_, _ = w.Write([]byte(`File size is above your limit (100mb unless set by Polairr)`))
-		return
-	}
-
 	domain := r.MultipartForm.Value["domain"][0]
 	if !utils.BucketExists(storage.Buckets, domain) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -136,7 +121,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	var responses []structs.FileUploadResponse
 	for _, f := range files {
-		if f.Size > maxFileSize {
+		if f.Size > currentUser.UploadLimit {
 			responses = append(responses, structs.FileUploadResponse{
 				Success: false,
 				Status:  http.StatusRequestEntityTooLarge,
