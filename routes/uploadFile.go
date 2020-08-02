@@ -47,11 +47,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`Invalid content length`))
 		return
 	}
-	if length > maxFileSize {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		_, _ = w.Write([]byte(`File size limit is 100mb`))
-		return
-	}
 
 	err = r.ParseMultipartForm(maxMemory)
 	if utils.HandleError(err, "parsing form body") {
@@ -93,6 +88,12 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`Invalid API key`))
+		return
+	}
+
+	if length > currentUser.UploadLimit {
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		_, _ = w.Write([]byte(`File size is above your limit (100mb unless set by Polairr)`))
 		return
 	}
 

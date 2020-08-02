@@ -131,20 +131,25 @@ func CheckObjectsForBlacklistedFile(sha256 string) ([]structs.Object, bool) {
 	return retVal, true
 }
 
-func CheckBlacklist(sha256 string) (bool, bool) {
+func GetBlacklist(sha256 string) (structs.Blacklist, bool) {
 	rows, err := DB.Query("select * from blacklist where hash=$1", sha256)
 	if utils.HandleError(err, "check blacklist") {
-		return false, false
+		return structs.Blacklist{}, false
 	}
 	defer rows.Close()
 	if rows.Next() {
-		return true, true
+		var retVal structs.Blacklist
+		err = rows.Scan(&retVal.SHA256, &retVal.Reason)
+		if utils.HandleError(err, "scan blacklist info into retval") {
+			return structs.Blacklist{}, false
+		}
+		return retVal, true
 	}
-	return false, true
+	return structs.Blacklist{}, true
 }
 
-func AddToBlacklist(sha256 string) bool {
-	_, err := DB.Exec("insert into blacklist values ($1)", sha256)
+func AddToBlacklist(sha256 string, reason string) bool {
+	_, err := DB.Exec("insert into blacklist values ($1, $2)", sha256, reason)
 	if utils.HandleError(err, "inserting hash into blacklist") {
 		return false
 	}
@@ -293,11 +298,19 @@ func GetDiscordMemberAccount(member *discordgo.Member) (structs.User, bool) {
 	defer users.Close()
 	if users.Next() {
 		var retUser structs.User
-		err = users.Scan(&retUser.DiscordID, &retUser.APIKey, &retUser.Admin)
+		err = users.Scan(&retUser.DiscordID, &retUser.APIKey, &retUser.UploadLimit, &retUser.Admin)
 		if utils.HandleError(err, "get discord member account scan") {
 			return structs.User{}, false
 		}
 		return retUser, true
 	}
 	return structs.User{}, true
+}
+
+func SetUserUploadLimit(user structs.User, newLimit int) bool {
+	_, err := DB.Exec("update users set uploadlimit=$1 where discordid=$2 and apikey=$3", newLimit, user.DiscordID, user.APIKey)
+	if utils.HandleError(err, "updating upload limit in db") {
+		return false
+	}
+	return true
 }

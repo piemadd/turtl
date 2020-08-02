@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"strings"
 	"time"
 	"turtl/config"
 	"turtl/db"
@@ -16,12 +17,15 @@ func blacklistCommand(s *discordgo.Session, m *discordgo.Message) {
 	}
 
 	args := UseArgs(m)
-	if len(args) < 1 {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "I need a file to blacklist, big man.")
+	if len(args) < 2 {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "I need a file to blacklist and a reason, big man.")
 		return
 	}
 
-	alreadyBlacklisted, ok := db.CheckBlacklist(args[0])
+	shaSum := args[0]
+	reason := strings.Join(utils.RemoveIndex(0, args), " ")
+
+	alreadyBlacklisted, ok := db.IsFileBlacklisted(shaSum)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
@@ -31,7 +35,7 @@ func blacklistCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	ok = db.AddToBlacklist(args[0])
+	ok = db.AddToBlacklist(shaSum, reason)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
