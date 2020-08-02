@@ -75,7 +75,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer users.Close()
 	if users.Next() {
-		err = users.Scan(&currentUser.DiscordID, &currentUser.APIKey, &currentUser.Admin)
+		err = users.Scan(&currentUser.DiscordID, &currentUser.APIKey, &currentUser.UploadLimit, &currentUser.Admin)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`Invalid API key`))
