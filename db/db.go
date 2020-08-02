@@ -224,7 +224,7 @@ func CreateUser(s *discordgo.Session, m *discordgo.Message, member *discordgo.Me
 		return "", false
 	}
 
-	_, err := DB.Exec("insert into users values ($1, $2, false)", member.User.ID, generated)
+	_, err := DB.Exec("insert into users values ($1, $2, 100000000, false)", member.User.ID, generated)
 	if utils.HandleError(err, "query users to check for existing uuid") {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return "", false
