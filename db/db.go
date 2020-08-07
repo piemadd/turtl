@@ -59,7 +59,11 @@ func DoesFileSumExist(md5 string, sha256 string, domain string) (string, bool) {
 	if objects.Next() {
 		var existingObject structs.Object
 		err = objects.Scan(&existingObject.Bucket, &existingObject.Wildcard, &existingObject.FileName, &existingObject.Uploader, &existingObject.CreatedAt, &existingObject.MD5, &existingObject.SHA256, &existingObject.DeletedAt)
-		return "https://" + existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
+		if existingObject.Wildcard == "" {
+			return "https://" + existingObject.Bucket + "/" + existingObject.FileName, true
+		} else {
+			return "https://" + existingObject.Wildcard + "." + existingObject.Bucket + "/" + existingObject.FileName, true
+		}
 	}
 	return "", true
 }
@@ -75,9 +79,17 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	url = strings.TrimPrefix(url, "https://")
 	splitAtPeriods := strings.Split(url, ".")
 	splitAtSlash := strings.Split(url, "/")
-	wildcard := splitAtPeriods[0]
 	filename := splitAtSlash[1]
-	domain := splitAtPeriods[1] + "." + strings.TrimSuffix(splitAtPeriods[2], "/"+strings.Split(filename, ".")[0])
+
+	var wildcard string
+	var domain string
+	if len(splitAtPeriods) == 2 { // no wildcard
+		domain = splitAtPeriods[0] + "." + strings.TrimSuffix(splitAtPeriods[1], "/"+strings.Split(filename, ".")[0])
+		wildcard = ""
+	} else {
+		domain = splitAtPeriods[1] + "." + strings.TrimSuffix(splitAtPeriods[2], "/"+strings.Split(filename, ".")[0])
+		wildcard = splitAtPeriods[0]
+	}
 
 	rows, err := DB.Query("select * from objects where wildcard=$1 and bucket=$2 and filename=$3", wildcard, domain, filename)
 	if utils.HandleError(err, "query DB for GetFileFromURL") {
