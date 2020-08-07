@@ -33,4 +33,5 @@ type Object struct {
 	CreatedAt int
 	MD5       string
 	SHA256    string
+	DeletedAt int
 }

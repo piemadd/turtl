@@ -51,7 +51,7 @@ func init() {
 	RegisterCommand(&Command{
 		Exec:     revokeCommand,
 		Trigger:  "revoke",
-		Aliases:  []string{"yoink"},
+		Aliases:  []string{"yoink", "yeet"},
 		Usage:    "revoke <user/apikey>",
 		Desc:     "Revoke an API key",
 		Disabled: false,

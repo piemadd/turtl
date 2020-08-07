@@ -35,16 +35,12 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 			domainString += "+ " + aws.StringValue(b.Name) + "\n"
 		}
 		domainString += "```"
-		_, _ = s.ChannelMessageSend(m.ChannelID, "**Welcome to turtl!**\n\nWe offer many different domains to choose from. Please pick one below and run `+sxcu <domain of your choice>` to generate a config.\n\nAvailable domains:\n"+domainString+"\n\n**NOTE:** All domains are wildcards. Any character or number, as well as hyphens, can be prepended to the domains. If nothing is prepended, a `i.` will be automatically added.\nExamples: `make-america.great-aga.in`, `cozy.is-stup.id`")
+		_, _ = s.ChannelMessageSend(m.ChannelID, "**Welcome to turtl!**\n\nWe offer many different domains to choose from. Please pick one below and run `+sxcu <domain of your choice>` to generate a config.\n\nAvailable domains:\n"+domainString+"\n\n**NOTE:** All domains are wildcards. Any character or number, as well as hyphens, can be prepended to the domains.\nExamples: `make-america.great-aga.in`, `cozy.is-stup.id`")
 	}
 
 	if !utils.BucketExists(storage.Buckets, args[0]) {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "We don't support that domain. Please type `+sxcu` with no arguments to see a list of our domains.")
 		return
-	}
-
-	if strings.Count(args[0], ".") < 2 {
-		args[0] = "i." + args[0]
 	}
 
 	dm, err := s.UserChannelCreate(m.Author.ID)

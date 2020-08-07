@@ -98,7 +98,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		rootDomain = eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee[1] + "." + eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee[2]
 	} else {
 		rootDomain = domain
-		domain = "i." + domain
 	}
 
 	if len(wildcard) > 30 {
@@ -358,7 +357,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		err = os.Remove(tPath)
 		_ = utils.HandleError(err, "removing file from path")
 
-		_, err = db.DB.Exec("insert into objects values ($1, $2, $3, $4, $5, $6, $7)", rootDomain, wildcard, generatedName, currentUser.DiscordID, time.Now().Unix(), hex.EncodeToString(md5Sum), hex.EncodeToString(sha256Sum))
+		_, err = db.DB.Exec("insert into objects values ($1, $2, $3, $4, $5, $6, $7, $8)", rootDomain, wildcard, generatedName, currentUser.DiscordID, time.Now().Unix(), hex.EncodeToString(md5Sum), hex.EncodeToString(sha256Sum), 0)
 		if utils.HandleError(err, "insert object into psql") {
 			responses = append(responses, structs.FileUploadResponse{
 				Success: false,

@@ -31,7 +31,14 @@ func fileinfoCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	_, err = s.ChannelMessageSend(dm.ID, "**Upload Info: "+args[0]+"**\n\n**Uploader:** <@"+file.Uploader+">\n**Created At:** "+time.Unix(int64(file.CreatedAt), 0).Format(time.RFC1123)+"\n**MD5:** "+file.MD5+"\n**SHA256:** "+file.SHA256)
+	var deleted string
+	if file.DeletedAt == 0 {
+		deleted = "Not Deleted"
+	} else {
+		deleted = time.Unix(int64(file.DeletedAt), 0).Format(time.RFC1123)
+	}
+
+	_, err = s.ChannelMessageSend(dm.ID, "**Upload Info: "+args[0]+"**\n\n**Uploader:** <@"+file.Uploader+">\n**Created At:** "+time.Unix(int64(file.CreatedAt), 0).Format(time.RFC1123)+"\n**MD5:** "+file.MD5+"\n**SHA256:** "+file.SHA256+"\n**Deleted At:** "+deleted)
 }
 
 func init() {
