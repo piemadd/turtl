@@ -8,6 +8,10 @@ import (
 )
 
 func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
+	if e.UserID == s.State.User.ID {
+		return
+	}
+
 	if e.ChannelID != "737854426693369899" {
 		return
 	}
