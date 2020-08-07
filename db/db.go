@@ -72,7 +72,7 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	if url == "" {
 		return structs.Object{}, false
 	}
-	if strings.Count(url, ".") < 3 {
+	if strings.Count(url, ".") < 2 {
 		return structs.Object{}, false
 	}
 
