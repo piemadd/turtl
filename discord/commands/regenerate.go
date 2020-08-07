@@ -23,7 +23,7 @@ func regenerateCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	generated, ok := db.GenerateUUID(s, m)
+	generated, ok := db.GenerateUUID()
 	if !ok || generated == "" {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
