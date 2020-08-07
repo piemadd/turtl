@@ -33,13 +33,6 @@ func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	dm, _ := s.UserChannelCreate(e.UserID)
-	ee, err := s.ChannelMessageSend(dm.ID, "Creating account...")
-	if ee == nil || ee.ID == "" || err != nil {
-		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> Please enable your DMs, then try reacting to the message again.")
-		return
-	}
-
 	member, err := s.GuildMember(config.DISCORD_GUILD, e.UserID)
 	if member == nil || member.User == nil || member.User.ID == "" || utils.HandleError(err, "checking for member in agree") {
 		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
@@ -57,6 +50,14 @@ func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
 			_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 			return
 		}
+		return
+	}
+
+	dm, _ := s.UserChannelCreate(e.UserID)
+	ee, err := s.ChannelMessageSend(dm.ID, "Creating account...")
+	if ee == nil || ee.ID == "" || err != nil {
+		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> Please enable your DMs, then try reacting to the message again.")
+		return
 	}
 
 	generated, ok := db.CreateUser(member)
