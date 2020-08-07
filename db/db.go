@@ -86,16 +86,10 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	if len(splitAtPeriods) == 3 { // no wildcard
 		domain = splitAtPeriods[0] + "." + strings.TrimSuffix(splitAtPeriods[1], "/"+strings.Split(filename, ".")[0])
 		wildcard = ""
-		fmt.Println("no")
 	} else {
 		domain = splitAtPeriods[1] + "." + strings.TrimSuffix(splitAtPeriods[2], "/"+strings.Split(filename, ".")[0])
 		wildcard = splitAtPeriods[0]
-		fmt.Println("yes")
 	}
-
-	fmt.Println(filename)
-	fmt.Println(domain)
-	fmt.Println(wildcard)
 
 	rows, err := DB.Query("select * from objects where wildcard=$1 and bucket=$2 and filename=$3", wildcard, domain, filename)
 	if utils.HandleError(err, "query DB for GetFileFromURL") {
@@ -239,26 +233,25 @@ func CheckAdmin(m *discordgo.Message) (bool, bool) {
 	return true, true
 }
 
-func CreateUser(s *discordgo.Session, m *discordgo.Message, member *discordgo.Member) (string, bool) {
-	generated, ok := GenerateUUID(s, m)
+func CreateUser(member *discordgo.Member) (string, bool) {
+	generated, ok := GenerateUUID()
 	if !ok || generated == "" {
 		return "", false
 	}
 
 	_, err := DB.Exec("insert into users values ($1, $2, 100000000, false)", member.User.ID, generated)
 	if utils.HandleError(err, "query users to check for existing uuid") {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return "", false
 	}
 
 	return generated, true
 }
 
-func GenerateUUID(s *discordgo.Session, m *discordgo.Message) (string, bool) {
+func GenerateUUID() (string, bool) {
 	var generated uuid.UUID
 	for i := 0; i < 5; i++ {
 		generated = uuid.New()
-		exists, ok := DoesUserExist(s, m, generated.String())
+		exists, ok := DoesUserExist(generated.String())
 		if !ok {
 			return "", false
 		}
@@ -297,10 +290,9 @@ func SetMemberAPIKey(member *discordgo.Member, newAPIKey string) bool {
 	return true
 }
 
-func DoesUserExist(s *discordgo.Session, m *discordgo.Message, apikey string) (bool, bool) {
+func DoesUserExist(apikey string) (bool, bool) {
 	existing, err := DB.Query("select * from users where apikey=$1", apikey)
 	if utils.HandleError(err, "query users to check for existing uuid") {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return false, false
 	}
 	defer existing.Close()
