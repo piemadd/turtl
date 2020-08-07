@@ -20,6 +20,7 @@ func CreateBot() {
 		return
 	}
 
+	Client.AddHandler(events.Agree)
 	Client.AddHandler(events.GuildMemberRemove)
 	Client.AddHandler(events.GuildMemberAdd)
 	Client.AddHandler(commands.HandleCommand)
