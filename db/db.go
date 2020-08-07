@@ -86,9 +86,11 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	if len(splitAtPeriods) == 2 { // no wildcard
 		domain = splitAtPeriods[0] + "." + strings.TrimSuffix(splitAtPeriods[1], "/"+strings.Split(filename, ".")[0])
 		wildcard = ""
+		fmt.Println("no")
 	} else {
 		domain = splitAtPeriods[1] + "." + strings.TrimSuffix(splitAtPeriods[2], "/"+strings.Split(filename, ".")[0])
 		wildcard = splitAtPeriods[0]
+		fmt.Println("yes")
 	}
 
 	fmt.Println(filename)
