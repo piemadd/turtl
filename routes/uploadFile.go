@@ -55,14 +55,14 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	getKey := r.MultipartForm.Value["apikey"]
 	if len(getKey) < 1 {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`No API key provided`))
+		_, _ = w.Write([]byte(`No API key provided`))
 		return
 	}
 
 	givenAPIKey := getKey[0]
 	if givenAPIKey == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`No API key provided`))
+		_, _ = w.Write([]byte(`No API key provided`))
 		return
 	}
 
@@ -78,7 +78,14 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		err = users.Scan(&currentUser.DiscordID, &currentUser.APIKey, &currentUser.UploadLimit, &currentUser.Admin)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`Invalid API key`))
+		_, _ = w.Write([]byte(`Invalid API key`))
+		return
+	}
+
+	member, err := discord.Client.GuildMember(config.DISCORD_GUILD, currentUser.DiscordID)
+	if member == nil || member.User == nil || member.User.ID == "" || utils.HandleError(err, "checking if user is member") {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = w.Write([]byte(`Not in Discord server - ` + config.DISCORD_INVITE))
 		return
 	}
 
@@ -104,6 +111,22 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusRequestURITooLong)
 		_, _ = w.Write([]byte(`Subdomain/wildcard too long (limit 30 letters)`))
 		return
+	}
+
+	guild, err := discord.Client.Guild(config.DISCORD_GUILD)
+	if utils.HandleError(err, "can't get guild") || guild == nil || guild.ID == "" || guild.Roles == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`Internal server error`))
+		return
+	}
+
+	whitelistedID := utils.DoesRoleNameExist(rootDomain, guild.Roles)
+	if whitelistedID != "" {
+		if !utils.ArrayContains(member.Roles, whitelistedID) {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`You are not allowed to use that domain`))
+			return
+		}
 	}
 
 	files, ok := r.MultipartForm.File["files[]"]

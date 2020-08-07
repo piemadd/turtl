@@ -70,3 +70,13 @@ func ArrayContains(arr []string, query string) bool {
 
 	return false
 }
+
+func DoesRoleNameExist(name string, roles []*discordgo.Role) string {
+	for _, r := range roles {
+		if strings.ToLower(name) == strings.ToLower(r.Name) {
+			return r.ID
+		}
+	}
+
+	return ""
+}
