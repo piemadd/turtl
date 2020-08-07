@@ -11,22 +11,23 @@ func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
 	if e.ChannelID != "737854426693369899" {
 		return
 	}
+	emojiID := ":" + e.Emoji.Name + ":" + e.Emoji.ID
 	if e.MessageID != "741298295405543427" {
-		err := s.MessageReactionRemove(e.ChannelID, e.MessageID, e.Emoji.ID, e.UserID)
+		err := s.MessageReactionRemove(e.ChannelID, e.MessageID, emojiID, e.UserID)
 		if utils.HandleError(err, "removing emoji from wrong message") {
 			_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 			return
 		}
 	}
 	if e.Emoji.ID != ":checkmark:741299438903099421" {
-		err := s.MessageReactionRemove(e.ChannelID, e.MessageID, e.Emoji.ID, e.UserID)
+		err := s.MessageReactionRemove(e.ChannelID, e.MessageID, emojiID, e.UserID)
 		if utils.HandleError(err, "removing wrong emoji from agree message") {
 			_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 			return
 		}
 	}
 
-	err := s.MessageReactionRemove(e.ChannelID, e.MessageID, e.Emoji.ID, e.UserID)
+	err := s.MessageReactionRemove(e.ChannelID, e.MessageID, emojiID, e.UserID)
 	if utils.HandleError(err, "removing emoji from agree message") {
 		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 		return
