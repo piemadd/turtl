@@ -52,7 +52,7 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 	whitelistedID := utils.DoesRoleNameExist(args[0], guild.Roles)
 	if whitelistedID != "" {
 		if !utils.ArrayContains(m.Member.Roles, whitelistedID) {
-			_, _ = s.ChannelMessageSend(m.ChannelID, "You aren't allowed to use that domain!")
+			_, _ = s.ChannelMessageSend(m.ChannelID, "You aren't allowed to use that domain! Please choose another one.")
 			return
 		}
 	}
