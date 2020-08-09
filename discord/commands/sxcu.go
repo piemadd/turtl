@@ -19,6 +19,12 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
+	guild, err := s.Guild(config.DISCORD_GUILD)
+	if utils.HandleError(err, "getting guild in sxcu") {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
+		return
+	}
+
 	account, ok := db.GetDiscordMemberAccount(member)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
@@ -41,6 +47,14 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 	if !utils.BucketExists(storage.Buckets, args[0]) {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "We don't support that domain. Please type `+sxcu` with no arguments to see a list of our domains.")
 		return
+	}
+
+	whitelistedID := utils.DoesRoleNameExist(args[0], guild.Roles)
+	if whitelistedID != "" {
+		if !utils.ArrayContains(m.Member.Roles, whitelistedID) {
+			_, _ = s.ChannelMessageSend(m.ChannelID, "You aren't allowed to use that domain!")
+			return
+		}
 	}
 
 	dm, err := s.UserChannelCreate(m.Author.ID)
