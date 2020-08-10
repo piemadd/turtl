@@ -49,7 +49,21 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	whitelistedID := utils.DoesRoleNameExist(args[0], guild.Roles)
+	var rootDomain string
+	if strings.Count(args[0], ".") > 2 {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "That isn't a valid domain! Domains can have a maximum of 2 periods (.)")
+		return
+	} else if strings.Count(args[0], ".") == 2 {
+		cozybad := strings.Split(args[0], ".")
+		rootDomain = cozybad[1] + "." + cozybad[2]
+	} else if strings.Count(args[0], ".") == 1 {
+		rootDomain = args[0]
+	} else {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "That isn't a valid domain! Please type `+sxcu` with no arguments to see a list of our domains.")
+		return
+	}
+
+	whitelistedID := utils.DoesRoleNameExist(rootDomain, guild.Roles)
 	if whitelistedID != "" {
 		if !utils.ArrayContains(m.Member.Roles, whitelistedID) {
 			_, _ = s.ChannelMessageSend(m.ChannelID, "You aren't allowed to use that domain! Please choose another one.")
