@@ -18,6 +18,11 @@ func deleteCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
+	if file.DeletedAt != 0 {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "This file has already been deleted.")
+		return
+	}
+
 	isAdmin, ok := db.CheckAdmin(m)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
