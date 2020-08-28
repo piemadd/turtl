@@ -380,7 +380,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		err = os.Remove(tPath)
 		_ = utils.HandleError(err, "removing file from path")
 
-		_, err = db.DB.Exec("insert into objects values ($1, $2, $3, $4, $5, $6, $7, $8)", rootDomain, wildcard, generatedName, currentUser.DiscordID, time.Now().Unix(), hex.EncodeToString(md5Sum), hex.EncodeToString(sha256Sum), 0)
+		_, err = db.DB.Exec("insert into objects values ($1, $2, $3, $4, $5, $6, $7, $8)", rootDomain, wildcard, generatedName, currentUser.DiscordID, time.Now().Unix(), strings.ToUpper(hex.EncodeToString(md5Sum)), strings.ToUpper(hex.EncodeToString(sha256Sum)), 0)
 		if utils.HandleError(err, "insert object into psql") {
 			responses = append(responses, structs.FileUploadResponse{
 				Success: false,

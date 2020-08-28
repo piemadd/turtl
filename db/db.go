@@ -39,7 +39,7 @@ func init() {
 }
 
 func IsFileBlacklisted(sha256 string) (bool, bool) {
-	blacklist, err := DB.Query("select * from blacklist where hash=$1", sha256)
+	blacklist, err := DB.Query("select * from blacklist where hash=$1", strings.ToUpper(sha256))
 	if utils.HandleError(err, "check if file is blacklisted") {
 		return true, false
 	}
@@ -51,7 +51,7 @@ func IsFileBlacklisted(sha256 string) (bool, bool) {
 }
 
 func DoesFileSumExist(md5 string, sha256 string, domain string) (string, bool) {
-	objects, err := DB.Query("select * from objects where (md5=$1 or sha256=$2) and bucket=$3", md5, sha256, domain)
+	objects, err := DB.Query("select * from objects where (md5=$1 or sha256=$2) and bucket=$3", strings.ToUpper(md5), strings.ToUpper(sha256), domain)
 	if utils.HandleError(err, "check if file sum exists") {
 		return "", false
 	}
@@ -107,25 +107,8 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	return structs.Object{}, true
 }
 
-func GetFileFromHash(sha256 string) (structs.Object, bool) {
-	rows, err := DB.Query("select * from objects where sha256=$1", sha256)
-	if utils.HandleError(err, "query DB for GetFileFromHash") {
-		return structs.Object{}, false
-	}
-	defer rows.Close()
-	if rows.Next() {
-		var retVal structs.Object
-		err = rows.Scan(&retVal.Bucket, &retVal.Wildcard, &retVal.FileName, &retVal.Uploader, &retVal.CreatedAt, &retVal.MD5, &retVal.SHA256, &retVal.DeletedAt)
-		if utils.HandleError(err, "scan into retval at GetFileFromHash") {
-			return structs.Object{}, false
-		}
-		return retVal, true
-	}
-	return structs.Object{}, true
-}
-
 func CheckObjectsForBlacklistedFile(sha256 string) ([]structs.Object, bool) {
-	rows, err := DB.Query("select * from objects where sha256=$1", sha256)
+	rows, err := DB.Query("select * from objects where sha256=$1", strings.ToUpper(sha256))
 	if utils.HandleError(err, "check objects for blacklisted files") {
 		return []structs.Object{}, false
 	}
@@ -147,7 +130,7 @@ func CheckObjectsForBlacklistedFile(sha256 string) ([]structs.Object, bool) {
 }
 
 func GetBlacklist(sha256 string) (structs.Blacklist, bool) {
-	rows, err := DB.Query("select * from blacklist where hash=$1", sha256)
+	rows, err := DB.Query("select * from blacklist where hash=$1", strings.ToUpper(sha256))
 	if utils.HandleError(err, "check blacklist") {
 		return structs.Blacklist{}, false
 	}
@@ -164,7 +147,7 @@ func GetBlacklist(sha256 string) (structs.Blacklist, bool) {
 }
 
 func AddToBlacklist(sha256 string, reason string) bool {
-	_, err := DB.Exec("insert into blacklist values ($1, $2)", sha256, reason)
+	_, err := DB.Exec("insert into blacklist values ($1, $2)", strings.ToUpper(sha256), reason)
 	if utils.HandleError(err, "inserting hash into blacklist") {
 		return false
 	}
