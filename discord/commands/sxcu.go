@@ -25,7 +25,7 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	account, ok := db.GetDiscordMemberAccount(member)
+	account, ok := db.GetAccountFromDiscord(member.User)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return

@@ -100,9 +100,9 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	var wildcard string
 
 	if strings.Count(domain, ".") > 1 { // active wildcard
-		eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee := strings.Split(domain, ".")
-		wildcard = eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee[0]
-		rootDomain = eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee[1] + "." + eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee[2]
+		domainSlice := strings.Split(domain, ".")
+		wildcard = domainSlice[0]
+		rootDomain = domainSlice[1] + "." + domainSlice[2]
 	} else {
 		rootDomain = domain
 	}

@@ -43,7 +43,7 @@ func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	acc, ok := db.GetDiscordMemberAccount(member)
+	acc, ok := db.GetAccountFromDiscord(member.User)
 	if !ok {
 		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 		return
