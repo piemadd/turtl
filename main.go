@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	_ "github.com/joho/godotenv/autoload"
 	"log"
 	"net/http"
+	"os"
 	_ "turtl/db"
 	"turtl/discord"
 	"turtl/routes"
@@ -20,7 +22,7 @@ func main() {
 
 	go discord.CreateBot()
 
-	err := http.ListenAndServe(":80", router)
+	err := http.ListenAndServeTLS(":443", os.Getenv("SSL_CERT"), os.Getenv("SSL_PRIV"), router)
 	if err != nil {
 		log.Fatal("Failed to start API", err.Error())
 	}
