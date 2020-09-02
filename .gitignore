@@ -1,3 +1,4 @@
 *.env
 config/config.go
 .idea/
+cert/
