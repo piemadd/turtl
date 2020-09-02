@@ -5,8 +5,6 @@ var DISCORD_ALERTS = "737767553878851666"
 var DISCORD_INVITE = "https://discord.gg/4auKk7J"
 var DISCORD_API_BASE = "https://discord.com/api/v6"
 
-var ALERTS_WEBHOOK = "https://discordapp.com/api/webhooks/738595110781976676/khlYegdeWfSjhwWipUg3Fvr39ymoaUjHP18UgUIJdS68C6oNK0T88esO8Zvw3jBxGjHv"
-
 var TEMP_PATH = "P:\\temp"
 var POLAIRR_ID = "492459066900348958"
 var BIG_BOYE = "737767127611867228"

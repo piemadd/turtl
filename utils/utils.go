@@ -4,9 +4,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/parnurzeal/gorequest"
+	"os"
 	"strings"
-	"turtl/config"
 )
 
 func HandleError(err error, loc string) bool {
@@ -17,7 +18,7 @@ func HandleError(err error, loc string) bool {
 			AvatarURL: "https://i.turtl.cloud/turtl.png",
 		}
 
-		_, _, _ = gorequest.New().Post(config.ALERTS_WEBHOOK).
+		_, _, _ = gorequest.New().Post(os.Getenv("DISCORD_ALERT_WEBHOOK")).
 			Send(params).
 			End()
 		return true
