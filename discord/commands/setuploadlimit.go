@@ -6,6 +6,7 @@ import (
 	"strings"
 	"turtl/config"
 	"turtl/db"
+	"turtl/utils"
 )
 
 func setuploadlimitCommand(s *discordgo.Session, m *discordgo.Message) {
@@ -34,7 +35,7 @@ func setuploadlimitCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	account, ok := db.GetAccountFromDiscord(member.User)
+	account, ok := db.GetAccountFromDiscord(member.User.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
@@ -45,8 +46,8 @@ func setuploadlimitCommand(s *discordgo.Session, m *discordgo.Message) {
 	}
 
 	bytes := 1000 * 1000 * megabytes
-	ok = db.SetUserUploadLimit(account, bytes)
-	if !ok {
+	_, err = db.DB.Exec("update users set uploadlimit=$1 where discordid=$2 and apikey=$3", bytes, account.DiscordID, account.APIKey)
+	if utils.HandleError(err, "updating upload limit in db") {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
 	}

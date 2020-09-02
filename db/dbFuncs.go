@@ -1,14 +1,11 @@
 package db
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 	"math/rand"
 	"strings"
 	"time"
-	"turtl/storage"
 	"turtl/structs"
 	"turtl/utils"
 )
@@ -82,28 +79,6 @@ func GetFileFromURL(url string) (structs.Object, bool) {
 	return structs.Object{}, true
 }
 
-func CheckObjectsForBlacklistedFile(sha256 string) ([]structs.Object, bool) {
-	rows, err := DB.Query("select * from objects where sha256=$1", strings.ToUpper(sha256))
-	if utils.HandleError(err, "check objects for blacklisted files") {
-		return []structs.Object{}, false
-	}
-	defer rows.Close()
-	var retVal []structs.Object
-	for rows.Next() {
-		var t structs.Object
-		err = rows.Scan(&t.Bucket, &t.Wildcard, &t.FileName, &t.Uploader, &t.CreatedAt, &t.MD5, &t.SHA256, &t.DeletedAt)
-		if utils.HandleError(err, "scan into retval at CheckObjectsForBlacklistedFile") {
-			return []structs.Object{}, false
-		}
-		if t.DeletedAt == 0 {
-			continue
-		}
-
-		retVal = append(retVal, t)
-	}
-	return retVal, true
-}
-
 func GetBlacklist(sha256 string) (structs.Blacklist, bool) {
 	rows, err := DB.Query("select * from blacklist where hash=$1", strings.ToUpper(sha256))
 	if utils.HandleError(err, "check blacklist") {
@@ -119,31 +94,6 @@ func GetBlacklist(sha256 string) (structs.Blacklist, bool) {
 		return retVal, true
 	}
 	return structs.Blacklist{}, true
-}
-
-func AddToBlacklist(sha256 string, reason string) bool {
-	_, err := DB.Exec("insert into blacklist values ($1, $2)", strings.ToUpper(sha256), reason)
-	if utils.HandleError(err, "inserting hash into blacklist") {
-		return false
-	}
-	return true
-}
-
-func DeleteFile(file structs.Object) bool {
-	_, err := storage.S3Service.DeleteObject(&s3.DeleteObjectInput{
-		Bucket: aws.String(file.Bucket),
-		Key:    aws.String(file.FileName),
-	})
-	if utils.HandleError(err, "delete file from bucket") {
-		return false
-	}
-
-	_, err = DB.Exec("update objects set deletedat=$1 where bucket=$2 and wildcard=$3 and filename=$4 and uploader=$5 and createdat=$6 and md5=$7 and sha256=$8", time.Now().Unix(), file.Bucket, file.Wildcard, file.FileName, file.Uploader, file.CreatedAt, file.MD5, file.SHA256)
-	if utils.HandleError(err, "delete file from db") {
-		return false
-	}
-
-	return true
 }
 
 func DoesFileNameExist(name string, domain string) (bool, bool) {
@@ -197,7 +147,7 @@ func CreateUser(member *discordgo.Member) (string, bool) {
 		return "", false
 	}
 
-	_, err := DB.Exec("insert into users values ($1, $2, 100000000, false)", member.User.ID, generated)
+	_, err := DB.Exec("insert into users values ($1, $2, 50000000, false)", member.User.ID, generated)
 	if utils.HandleError(err, "query users to check for existing uuid") {
 		return "", false
 	}
@@ -228,26 +178,6 @@ func RevokeKey(key string) bool {
 	return true
 }
 
-func DoesDiscordOrKeyExist(key string) (bool, bool) {
-	rows, err := DB.Query("select * from users where discordid=$1 or apikey=$1", key)
-	if utils.HandleError(err, "delete user from db") {
-		return false, false
-	}
-	defer rows.Close()
-	if rows.Next() {
-		return true, true
-	}
-	return false, true
-}
-
-func SetMemberAPIKey(member *discordgo.Member, newAPIKey string) bool {
-	_, err := DB.Exec("update users set apikey=$1 where discordid=$2", newAPIKey, member.User.ID)
-	if utils.HandleError(err, "update api key") {
-		return false
-	}
-	return true
-}
-
 func DoesUserExist(apikey string) (bool, bool) {
 	existing, err := DB.Query("select * from users where apikey=$1", apikey)
 	if utils.HandleError(err, "query users to check for existing uuid") {
@@ -261,8 +191,8 @@ func DoesUserExist(apikey string) (bool, bool) {
 	return false, true
 }
 
-func GetAccountFromDiscord(user *discordgo.User) (structs.User, bool) {
-	users, err := DB.Query("select * from users where discordid=$1", user.ID)
+func GetAccountFromDiscord(userID string) (structs.User, bool) {
+	users, err := DB.Query("select * from users where discordid=$1", userID)
 	if utils.HandleError(err, "checking for discord account") {
 		return structs.User{}, false
 	}
@@ -278,10 +208,19 @@ func GetAccountFromDiscord(user *discordgo.User) (structs.User, bool) {
 	return structs.User{}, true
 }
 
-func SetUserUploadLimit(user structs.User, newLimit int) bool {
-	_, err := DB.Exec("update users set uploadlimit=$1 where discordid=$2 and apikey=$3", newLimit, user.DiscordID, user.APIKey)
-	if utils.HandleError(err, "updating upload limit in db") {
-		return false
+func GetAccountFromAPIKey(apikey string) (structs.User, bool) {
+	users, err := DB.Query("select * from users where apikey=$1", apikey)
+	if utils.HandleError(err, "checking for turtl account from apikey") {
+		return structs.User{}, false
 	}
-	return true
+	defer users.Close()
+	if users.Next() {
+		var retUser structs.User
+		err = users.Scan(&retUser.DiscordID, &retUser.APIKey, &retUser.UploadLimit, &retUser.Admin)
+		if utils.HandleError(err, "api key account scan") {
+			return structs.User{}, false
+		}
+		return retUser, true
+	}
+	return structs.User{}, true
 }

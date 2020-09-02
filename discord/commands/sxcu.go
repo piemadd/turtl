@@ -25,7 +25,7 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	account, ok := db.GetAccountFromDiscord(member.User)
+	account, ok := db.GetAccountFromDiscord(member.User.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
@@ -77,7 +77,7 @@ func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	generatedConfig := strings.NewReader("{\n  \"Version\": \"13.1.0\",\n  \"Name\": \"turtl\",\n  \"DestinationType\": \"ImageUploader, TextUploader, FileUploader\",\n  \"RequestMethod\": \"POST\",\n  \"RequestURL\": \"http://api.turtl.cloud/upload\",\n  \"Body\": \"MultipartFormData\",\n  \"Arguments\": {\n    \"domain\": \"" + args[0] + "\",\n    \"apikey\": \"" + account.APIKey + "\"\n  },\n  \"FileFormName\": \"files[]\",\n  \"URL\": \"$json:files[0].url$\"\n}")
+	generatedConfig := strings.NewReader("{\n  \"Version\": \"13.1.0\",\n  \"Name\": \"turtl\",\n  \"DestinationType\": \"ImageUploader, TextUploader, FileUploader\",\n  \"RequestMethod\": \"POST\",\n  \"RequestURL\": \"http://api.turtl.cloud/upload\",\n  \"Headers\": {\n    \"Authorization\": \"" + account.APIKey + "\"\n  },\n  \"Body\": \"MultipartFormData\",\n  \"Arguments\": {\n    \"domain\": \"" + args[0] + "\"\n  },\n  \"FileFormName\": \"files[]\",\n  \"URL\": \"$json:files[0].url$\"\n}")
 	messageSend := &discordgo.MessageSend{
 		Content: "Here is your newly generated ShareX config. Simply download and run it to start using turtl.",
 		File: &discordgo.File{

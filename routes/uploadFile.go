@@ -6,8 +6,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/dgrijalva/jwt-go"
 	"io"
 	"log"
 	"net/http"
@@ -52,31 +54,53 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	getKey := r.MultipartForm.Value["apikey"]
-	if len(getKey) < 1 {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = w.Write([]byte(`No API key provided`))
-		return
-	}
-
-	givenAPIKey := getKey[0]
-	if givenAPIKey == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = w.Write([]byte(`No API key provided`))
+		_, _ = w.Write([]byte(`No Authorization header provided`))
 		return
 	}
 
 	var currentUser structs.User
-	users, err := db.DB.Query("select * from users where apikey=$1", givenAPIKey)
-	if utils.HandleError(err, "getting users") {
+	var userReqOk bool
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		token, err := jwt.Parse(strings.TrimPrefix(authHeader, "Bearer "), func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method")
+			}
+
+			return []byte(os.Getenv("APP_SECRET_KEY")), nil
+		})
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`Unexpected signing method`))
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if claims["userid"] == "" {
+				w.WriteHeader(http.StatusUnauthorized)
+				_, _ = w.Write([]byte(`API key not provided`))
+				return
+			}
+
+			currentUser, userReqOk = db.GetAccountFromDiscord(claims["userid"].(string))
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`Forged token`))
+			return
+		}
+	} else {
+		currentUser, userReqOk = db.GetAccountFromAPIKey(authHeader)
+	}
+
+	if !userReqOk {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`Internal server error`))
 		return
 	}
-	defer users.Close()
-	if users.Next() {
-		err = users.Scan(&currentUser.DiscordID, &currentUser.APIKey, &currentUser.UploadLimit, &currentUser.Admin)
-	} else {
+	if currentUser.APIKey == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		_, _ = w.Write([]byte(`Invalid API key`))
 		return

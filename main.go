@@ -14,6 +14,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/upload", routes.UploadFile)
+	router.HandleFunc("/auth", routes.DiscordAuth)
 
 	log.Println("API Initialized")
 

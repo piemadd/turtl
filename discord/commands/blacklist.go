@@ -6,6 +6,7 @@ import (
 	"time"
 	"turtl/config"
 	"turtl/db"
+	"turtl/structs"
 	"turtl/utils"
 )
 
@@ -35,13 +36,32 @@ func blacklistCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	ok = db.AddToBlacklist(shaSum, reason)
-	if !ok {
+	_, err := db.DB.Exec("insert into blacklist values ($1, $2)", strings.ToUpper(shaSum), reason)
+	if utils.HandleError(err, "inserting hash into blacklist") {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
 	}
 
-	existing, ok := db.CheckObjectsForBlacklistedFile(args[0])
+	rows, err := db.DB.Query("select * from objects where sha256=$1", strings.ToUpper(shaSum))
+	if utils.HandleError(err, "check objects for blacklisted files") {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
+		return
+	}
+	defer rows.Close()
+	var existing []structs.Object
+	for rows.Next() {
+		var t structs.Object
+		err = rows.Scan(&t.Bucket, &t.Wildcard, &t.FileName, &t.Uploader, &t.CreatedAt, &t.MD5, &t.SHA256, &t.DeletedAt)
+		if utils.HandleError(err, "scan into retval at CheckObjectsForBlacklistedFile") {
+			_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
+			return
+		}
+		if t.DeletedAt == 0 {
+			continue
+		}
+
+		existing = append(existing, t)
+	}
 	for _, file := range existing {
 		_, err := s.ChannelMessageSend(config.DISCORD_ALERTS, "<@492459066900348958>\n**Blacklisted file in Storage**\n\n**Bucket:** "+file.Bucket+"\n**Wildcard:** "+file.Wildcard+"\n**File Name:** "+file.FileName+"\n**Uploader:** <@"+file.Uploader+">\n**Created At:**"+time.Unix(int64(file.CreatedAt), 0).Format(time.RFC1123)+"\n**MD5:** "+file.MD5+"\n**SHA256:** "+file.SHA256)
 		if utils.HandleError(err, "send alert for blacklisted file") {

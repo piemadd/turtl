@@ -3,6 +3,7 @@ package config
 var DISCORD_GUILD = "737767019134451833"
 var DISCORD_ALERTS = "737767553878851666"
 var DISCORD_INVITE = "https://discord.gg/4auKk7J"
+var DISCORD_API_BASE = "https://discord.com/api/v6"
 
 var ALERTS_WEBHOOK = "https://discordapp.com/api/webhooks/738595110781976676/khlYegdeWfSjhwWipUg3Fvr39ymoaUjHP18UgUIJdS68C6oNK0T88esO8Zvw3jBxGjHv"
 

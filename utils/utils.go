@@ -1,12 +1,10 @@
 package utils
 
 import (
-	"bytes"
-	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
-	"net/http"
+	"github.com/parnurzeal/gorequest"
 	"strings"
 	"turtl/config"
 )
@@ -18,15 +16,10 @@ func HandleError(err error, loc string) bool {
 			Username:  "turtl",
 			AvatarURL: "https://i.turtl.cloud/turtl.png",
 		}
-		reqBody, err := json.Marshal(params)
-		if err != nil {
-			return true
-		}
 
-		_, err = http.Post(config.ALERTS_WEBHOOK, "application/json", bytes.NewBuffer(reqBody))
-		if err != nil {
-			return true
-		}
+		_, _, _ = gorequest.New().Post(config.ALERTS_WEBHOOK).
+			Send(params).
+			End()
 		return true
 	}
 	return false

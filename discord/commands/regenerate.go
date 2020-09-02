@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"turtl/config"
 	"turtl/db"
+	"turtl/utils"
 )
 
 func regenerateCommand(s *discordgo.Session, m *discordgo.Message) {
@@ -13,7 +14,7 @@ func regenerateCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	account, ok := db.GetAccountFromDiscord(member.User)
+	account, ok := db.GetAccountFromDiscord(member.User.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
@@ -39,8 +40,8 @@ func regenerateCommand(s *discordgo.Session, m *discordgo.Message) {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Please make sure your DMs are open and try running this command again.")
 		return
 	} else {
-		ok = db.SetMemberAPIKey(member, generated)
-		if !ok {
+		_, err := db.DB.Exec("update users set apikey=$1 where discordid=$2", generated, member.User.ID)
+		if utils.HandleError(err, "update api key") {
 			_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 			_, _ = s.ChannelMessageEdit(msg.ChannelID, msg.ID, "Error! Please try again later.")
 			return

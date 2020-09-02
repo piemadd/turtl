@@ -1,8 +1,13 @@
 package commands
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
+	"time"
 	"turtl/db"
+	"turtl/storage"
+	"turtl/utils"
 )
 
 func deleteCommand(s *discordgo.Session, m *discordgo.Message) {
@@ -34,12 +39,20 @@ func deleteCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	ok = db.DeleteFile(file)
-	if !ok {
+	_, err := storage.S3Service.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(file.Bucket),
+		Key:    aws.String(file.FileName),
+	})
+	if utils.HandleError(err, "delete file from bucket") {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
 	}
 
+	_, err = db.DB.Exec("update objects set deletedat=$1 where bucket=$2 and wildcard=$3 and filename=$4 and uploader=$5 and createdat=$6 and md5=$7 and sha256=$8", time.Now().Unix(), file.Bucket, file.Wildcard, file.FileName, file.Uploader, file.CreatedAt, file.MD5, file.SHA256)
+	if utils.HandleError(err, "delete file from db") {
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
+		return
+	}
 	_, _ = s.ChannelMessageSend(m.ChannelID, "File has been successfully deleted!")
 }
 

@@ -28,7 +28,7 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	currentAccount, ok := db.GetAccountFromDiscord(member.User)
+	currentAccount, ok := db.GetAccountFromDiscord(member.User.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return

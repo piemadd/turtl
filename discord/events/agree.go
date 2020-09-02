@@ -8,7 +8,7 @@ import (
 )
 
 func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
-	if e.UserID == s.State.User.ID {
+	if e.UserID == config.POLAIRR_ID {
 		return
 	}
 
@@ -43,7 +43,7 @@ func Agree(s *discordgo.Session, e *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	acc, ok := db.GetAccountFromDiscord(member.User)
+	acc, ok := db.GetAccountFromDiscord(member.User.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(config.PUB_ALERTS, "<@"+e.UserID+"> An error occurred, please try again later.")
 		return
