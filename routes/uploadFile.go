@@ -79,21 +79,21 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if claims["userid"] == "" {
+			if claims["apikey"] == "" {
 				w.WriteHeader(http.StatusUnauthorized)
 				_, _ = w.Write([]byte(`API key not provided`))
 				return
 			}
 
-			currentUser, userReqOk = db.GetAccountFromDiscord(claims["userid"].(string))
+			authHeader = claims["apikey"].(string)
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
 			_, _ = w.Write([]byte(`Forged token`))
 			return
 		}
-	} else {
-		currentUser, userReqOk = db.GetAccountFromAPIKey(authHeader)
 	}
+
+	currentUser, userReqOk = db.GetAccountFromAPIKey(authHeader)
 
 	if !userReqOk {
 		w.WriteHeader(http.StatusInternalServerError)
