@@ -2,8 +2,9 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"strings"
-	"turtl/config"
 	"turtl/db"
 	"turtl/utils"
 )
@@ -22,7 +23,7 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 	}
 
 	memberID := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(args[0], "<@"), "!"), ">")
-	member, err := s.GuildMember(config.DISCORD_GUILD, memberID)
+	member, err := s.GuildMember(os.Getenv("DISCORD_GUILD"), memberID)
 	if member == nil || member.User == nil || member.User.ID == "" || err != nil {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "They're not in this server")
 		return
@@ -47,7 +48,7 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 	dm, _ := s.UserChannelCreate(member.User.ID)
 	_, err = s.ChannelMessageSend(dm.ID, "Your Turtl API key is: `"+generated+"`. Please do not lose it or give it to anyone else.\n\nYou can generate a .sxcu (configuration) file by going to <#737767470789820496> and typing `+sxcu` (your API kill will be filled automatically).")
 	if err != nil {
-		dm, err = s.UserChannelCreate(config.POLAIRR_ID)
+		dm, err = s.UserChannelCreate(os.Getenv("OWNER_ID"))
 		if utils.HandleError(err, "DMing yourself") {
 			_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 			return
@@ -55,7 +56,7 @@ func createuserCommand(s *discordgo.Session, m *discordgo.Message) {
 		_, _ = s.ChannelMessageSend(dm.ID, member.Mention()+"'s DMs are disabled. Their API key is: `"+generated+"`.")
 	}
 
-	err = s.GuildMemberRoleAdd(config.DISCORD_GUILD, member.User.ID, config.BIG_BOYE)
+	err = s.GuildMemberRoleAdd(os.Getenv("DISCORD_GUILD"), member.User.ID, os.Getenv("DISCORD_REG_ROLE"))
 	_ = utils.HandleError(err, "adding big boye role")
 
 	_, _ = s.ChannelMessageSend(m.ChannelID, "User has been created")

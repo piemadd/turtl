@@ -2,13 +2,14 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"turtl/config"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"turtl/db"
 	"turtl/utils"
 )
 
 func regenerateCommand(s *discordgo.Session, m *discordgo.Message) {
-	member, err := s.GuildMember(config.DISCORD_GUILD, m.Author.ID)
+	member, err := s.GuildMember(os.Getenv("DISCORD_GUILD"), m.Author.ID)
 	if member == nil || err != nil {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "I can't find your account. Please DM Polairr to make one.")
 		return

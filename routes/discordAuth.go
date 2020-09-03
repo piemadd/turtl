@@ -10,11 +10,12 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"turtl/config"
 	"turtl/db"
 	"turtl/structs"
 	"turtl/utils"
 )
+
+var discordAPIBase = "https://discord.com/api/v6"
 
 func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 	// get url queries to extract code
@@ -23,7 +24,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 
 	// get actual user token
 	request := gorequest.New()
-	resp, body, errs := request.Post(config.DISCORD_API_BASE+"/oauth2/token").
+	resp, body, errs := request.Post(discordAPIBase+"/oauth2/token").
 		Set("Content-Type", "application/x-www-form-urlencoded").
 		Send(structs.DiscordExchangeRequest{
 			ClientId:     os.Getenv("DISCORD_CLIENT_ID"),
@@ -57,7 +58,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get user info
-	_, body, errs = request.Get(config.DISCORD_API_BASE+"/users/@me").
+	_, body, errs = request.Get(discordAPIBase+"/users/@me").
 		Set("Authorization", discordAccount.TokenType+" "+discordAccount.AccessToken).
 		End()
 	if errs != nil {
@@ -111,7 +112,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeToken(token string, w http.ResponseWriter) {
-	_, _, errs := gorequest.New().Post(config.DISCORD_API_BASE+"/token/revoke").
+	_, _, errs := gorequest.New().Post(discordAPIBase+"/token/revoke").
 		Set("Content-Type", "application/x-www-form-urlencoded").
 		Send(`{"token":"` + token + `"}`).
 		End()

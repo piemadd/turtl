@@ -2,9 +2,10 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"strings"
 	"time"
-	"turtl/config"
 	"turtl/db"
 	"turtl/structs"
 	"turtl/utils"
@@ -63,7 +64,7 @@ func blacklistCommand(s *discordgo.Session, m *discordgo.Message) {
 		existing = append(existing, t)
 	}
 	for _, file := range existing {
-		_, err := s.ChannelMessageSend(config.DISCORD_ALERTS, "<@492459066900348958>\n**Blacklisted file in Storage**\n\n**Bucket:** "+file.Bucket+"\n**Wildcard:** "+file.Wildcard+"\n**File Name:** "+file.FileName+"\n**Uploader:** <@"+file.Uploader+">\n**Created At:**"+time.Unix(int64(file.CreatedAt), 0).Format(time.RFC1123)+"\n**MD5:** "+file.MD5+"\n**SHA256:** "+file.SHA256)
+		_, err := s.ChannelMessageSend(os.Getenv("DISCORD_ALERTS"), "<@492459066900348958>\n**Blacklisted file in Storage**\n\n**Bucket:** "+file.Bucket+"\n**Wildcard:** "+file.Wildcard+"\n**File Name:** "+file.FileName+"\n**Uploader:** <@"+file.Uploader+">\n**Created At:**"+time.Unix(int64(file.CreatedAt), 0).Format(time.RFC1123)+"\n**MD5:** "+file.MD5+"\n**SHA256:** "+file.SHA256)
 		if utils.HandleError(err, "send alert for blacklisted file") {
 			continue
 		}

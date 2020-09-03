@@ -3,8 +3,9 @@ package commands
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"strings"
-	"turtl/config"
 	"turtl/db"
 	"turtl/storage"
 	"turtl/utils"
@@ -13,19 +14,18 @@ import (
 func sxcuCommand(s *discordgo.Session, m *discordgo.Message) {
 	args := UseArgs(m)
 
-	member, err := s.GuildMember(config.DISCORD_GUILD, m.Author.ID)
-	if member == nil || err != nil {
+	if m.Member == nil || len(m.Member.Roles) <= 0 {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "I can't find your account. Please DM Polairr to make one.")
 		return
 	}
 
-	guild, err := s.Guild(config.DISCORD_GUILD)
+	guild, err := s.Guild(os.Getenv("DISCORD_GUILD"))
 	if utils.HandleError(err, "getting guild in sxcu") {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return
 	}
 
-	account, ok := db.GetAccountFromDiscord(member.User.ID)
+	account, ok := db.GetAccountFromDiscord(m.Author.ID)
 	if !ok {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Error! Please try again later.")
 		return

@@ -2,9 +2,10 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"strconv"
 	"strings"
-	"turtl/config"
 	"turtl/db"
 	"turtl/utils"
 )
@@ -23,7 +24,7 @@ func setuploadlimitCommand(s *discordgo.Session, m *discordgo.Message) {
 	}
 
 	memberID := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(args[0], "<@"), "!"), ">")
-	member, err := s.GuildMember(config.DISCORD_GUILD, memberID)
+	member, err := s.GuildMember(os.Getenv("DISCORD_GUILD"), memberID)
 	if member == nil || member.User == nil || member.User.ID == "" || err != nil {
 		_, _ = s.ChannelMessageSend(m.ChannelID, "They're not in this server")
 		return

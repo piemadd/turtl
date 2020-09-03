@@ -2,8 +2,9 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
 	"strings"
-	"turtl/config"
 	"turtl/db"
 	"turtl/structs"
 	"turtl/utils"
@@ -41,10 +42,10 @@ func revokeCommand(s *discordgo.Session, m *discordgo.Message) {
 		return
 	}
 
-	member, err := s.GuildMember(config.DISCORD_GUILD, account.DiscordID)
+	member, err := s.GuildMember(os.Getenv("DISCORD_GUILD"), account.DiscordID)
 	if member != nil && err == nil && member.User.ID != "" {
-		err = s.GuildMemberRoleRemove(config.DISCORD_GUILD, member.User.ID, config.BIG_BOYE)
-		_ = utils.HandleError(err, "removing big boye role")
+		err = s.GuildMemberRoleRemove(os.Getenv("DISCORD_GUILD"), member.User.ID, os.Getenv("DISCORD_REG_ROLE"))
+		_ = utils.HandleError(err, "removing registered role")
 	}
 
 	ok = db.RevokeKey(account.APIKey)

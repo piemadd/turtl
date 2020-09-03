@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/dgrijalva/jwt-go"
+	_ "github.com/joho/godotenv/autoload"
 	"io"
 	"log"
 	"net/http"
@@ -17,7 +18,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"turtl/config"
 	"turtl/db"
 	"turtl/discord"
 	"turtl/storage"
@@ -106,10 +106,10 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member, err := discord.Client.GuildMember(config.DISCORD_GUILD, currentUser.DiscordID)
+	member, err := discord.Client.GuildMember(os.Getenv("DISCORD_GUILD"), currentUser.DiscordID)
 	if member == nil || member.User == nil || member.User.ID == "" || utils.HandleError(err, "checking if user is member") {
 		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = w.Write([]byte(`Not in Discord server - ` + config.DISCORD_INVITE))
+		_, _ = w.Write([]byte(`Not in Discord server - ` + os.Getenv("DISCORD_INVITE")))
 		return
 	}
 
@@ -137,7 +137,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guild, err := discord.Client.Guild(config.DISCORD_GUILD)
+	guild, err := discord.Client.Guild(os.Getenv("DISCORD_GUILD"))
 	if utils.HandleError(err, "can't get guild") || guild == nil || guild.ID == "" || guild.Roles == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`Internal server error`))
@@ -240,7 +240,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 
 		md5H := md5.New()
 		sha256H := sha256.New()
-		tPath := filepath.Join(config.TEMP_PATH, generatedName)
+		tPath := filepath.Join(os.Getenv("APP_TEMP"), generatedName)
 		tFile, err := os.Create(tPath)
 		if utils.HandleError(err, "creating temp file") {
 			err = os.Remove(tPath)
@@ -306,7 +306,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			err = os.Remove(tPath)
 			_ = utils.HandleError(err, "removing file from path")
 
-			_, _ = discord.Client.ChannelMessageSend(config.DISCORD_ALERTS, "<@492459066900348958>\n**Attempted Blacklisted Upload**\n\n**Uploader:** <@"+currentUser.DiscordID+">\n**MD5:** "+md5String+"\n**SHA256:** "+sha256String)
+			_, _ = discord.Client.ChannelMessageSend(os.Getenv("DISCORD_ALERTS"), "<@492459066900348958>\n**Attempted Blacklisted Upload**\n\n**Uploader:** <@"+currentUser.DiscordID+">\n**MD5:** "+md5String+"\n**SHA256:** "+sha256String)
 
 			responses = append(responses, structs.FileUploadResponse{
 				Success: false,

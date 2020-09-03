@@ -4,7 +4,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	_ "github.com/joho/godotenv/autoload"
 	"log"
+	"os"
 )
 
 var Session *session.Session
@@ -13,7 +15,7 @@ var Buckets []*s3.Bucket
 
 func init() {
 	Session = session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1"),
+		Region: aws.String(os.Getenv("AWS_REGION")),
 	}))
 	S3Service = s3.New(Session)
 
