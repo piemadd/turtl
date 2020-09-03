@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var AppSecretKey []byte
+
 func HandleError(err error, loc string) bool {
 	if err != nil {
 		params := discordgo.WebhookParams{

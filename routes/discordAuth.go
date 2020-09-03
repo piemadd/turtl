@@ -99,7 +99,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 		"apikey": turtlAccount.APIKey,
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("APP_SECRET_KEY")))
+	tokenString, err := token.SignedString(utils.AppSecretKey)
 	if utils.HandleError(err, "signing token") {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`Internal server error`))

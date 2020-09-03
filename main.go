@@ -5,23 +5,40 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 	_ "turtl/db"
 	"turtl/discord"
 	"turtl/routes"
 	_ "turtl/storage"
+	"turtl/utils"
 )
 
 func main() {
+	// generate secret key before we do anything else
+	rand.Seed(time.Now().UnixNano())
+	n := 4096
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*_-=+[]{}(),.<>/?;:~"
+
+	sb := strings.Builder{}
+	sb.Grow(n)
+	for i := 0; i < n; i++ {
+		sb.WriteByte(letterBytes[rand.Intn(len(letterBytes))])
+	}
+
+	utils.AppSecretKey = []byte(sb.String())
+
+	// start the bot
+	go discord.CreateBot()
+
+	// initialize API
 	router := mux.NewRouter()
 
 	router.HandleFunc("/upload", routes.UploadFile)
 	router.HandleFunc("/auth", routes.DiscordAuth)
-
-	log.Println("API Initialized")
-
-	go discord.CreateBot()
 
 	tlsCfg := &tls.Config{
 		PreferServerCipherSuites: true,
@@ -40,6 +57,8 @@ func main() {
 		TLSConfig:    tlsCfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
+
+	log.Println("API Initialized. Starting...")
 
 	err := server.ListenAndServeTLS(os.Getenv("SSL_CERT"), os.Getenv("SSL_PRIV"))
 	if err != nil {

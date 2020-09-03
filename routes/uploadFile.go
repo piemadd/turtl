@@ -69,7 +69,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
 
-			return []byte(os.Getenv("APP_SECRET_KEY")), nil
+			return utils.AppSecretKey, nil
 		})
 
 		if err != nil {
