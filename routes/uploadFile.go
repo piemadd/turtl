@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"turtl/db"
@@ -79,9 +80,22 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if claims["apikey"] == "" {
+			if claims["apikey"].(string) == "" || claims["exp"].(string) == "" {
 				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`API key not provided`))
+				_, _ = w.Write([]byte(`Malformed token`))
+				return
+			}
+
+			intExp, err := strconv.Atoi(claims["exp"].(string))
+			if intExp <= 0 || err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				_, _ = w.Write([]byte(`Malformed token`))
+				return
+			}
+
+			if int(time.Now().Unix()) > intExp {
+				w.WriteHeader(http.StatusUnauthorized)
+				_, _ = w.Write([]byte(`Token expired`))
 				return
 			}
 
