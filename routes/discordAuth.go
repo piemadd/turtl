@@ -95,7 +95,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 
 	// create token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"exp":    time.Now().Add(60 * time.Minute),
+		"exp":    30 * time.Second,
 		"apikey": turtlAccount.APIKey,
 	})
 
