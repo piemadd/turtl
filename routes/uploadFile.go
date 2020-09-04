@@ -93,7 +93,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if int(time.Now().Unix()) > intExp {
+			if int(time.Now().Unix()) >= intExp {
 				w.WriteHeader(http.StatusUnauthorized)
 				_, _ = w.Write([]byte(`Token expired`))
 				return
