@@ -9,4 +9,4 @@ WORKDIR /app
 RUN go build -o main .
 CMD ["/app/main"]
 
-EXPOSE 80
+EXPOSE 443
