@@ -108,7 +108,7 @@ func DiscordAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	revokeToken(discordAccount.AccessToken, w)
-	http.Redirect(w, r, os.Getenv("APP_FRONTEND_REDIRECT")+"?token="+tokenString, http.StatusFound)
+	http.Redirect(w, r, os.Getenv("APP_FRONTEND_REDIRECT")+"?token="+tokenString+"&user="+user.Username+"%23"+user.Discriminator, http.StatusFound)
 }
 
 func revokeToken(token string, w http.ResponseWriter) {
