@@ -8,7 +8,6 @@ import (
 	"time"
 	"turtl/structs"
 	"turtl/utils"
-	"math/rand"
 )
 
 func IsFileBlacklisted(sha256 string) (bool, bool) {
