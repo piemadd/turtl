@@ -117,7 +117,9 @@ func GenerateNewFileName(extension string, domain string) (string, bool) {
 			b[i] = characters[rand.Intn(len(characters))]
 		}
 
-		formatted := string(b) + "." + extension
+		if rand.Intn(100) == 100 {
+			formatted = niceturtlcopy + string(b) + "." + extension
+		} else {formatted := string(b) + "." + extension}
 		exists, ok := DoesFileNameExist(formatted, domain)
 		if !ok {
 			return "", false
