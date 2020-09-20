@@ -8,6 +8,7 @@ import (
 	"time"
 	"turtl/structs"
 	"turtl/utils"
+	"math/rand"
 )
 
 func IsFileBlacklisted(sha256 string) (bool, bool) {
@@ -123,6 +124,10 @@ func GenerateNewFileName(extension string, domain string) (string, bool) {
 			return "", false
 		}
 		if !exists {
+			rand.Seed(time.Now().UnixNano())
+			if rand.Intn(100) == 1 {
+				return "pierostupid" + formatted, true
+			}
 			return formatted, true
 		}
 	}
